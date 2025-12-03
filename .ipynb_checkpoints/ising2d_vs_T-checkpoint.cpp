@@ -119,15 +119,6 @@ double Magnetization() {
   return( (double)nmag/(NX*NY));
 }
 
-double Energy() {
-    double e = 0.0;
-    for (int nx = 1; nx <= NX; nx++) {
-        for (int ny = 1; ny <= NY; ny++) {
-            e -= spin[nx][ny] * (spin[nx+1][ny] + spin[nx][ny+1]);
-        }
-    }
-    return e;
-}
 
 /* DisplayLattice
 ** ==============
@@ -191,32 +182,16 @@ int main() {
     beta = 1/T;
     /* sweep ntherm times to thermalize system at new temperature */
     for(n=0; n<ntherm; n++) sweep(beta,h);
-      
     /* then sweep through lattice nsweep times for that temperature */
     nmag=ntotal=0;
-    double e_total = 0.0;
-    double e2_total = 0.0;
     for(n=0; n<nsweep; n++) {
       sweep(beta,h);
-      double e_conf = Energy();
-      e_total += e_conf;
-      e2_total += e_conf * e_conf;
-        
-      for(nx=1; nx<=NX; nx++) {
-          for(ny=1; ny<=NY; ny++) {
-        	nmag += spin[nx][ny];
-        	ntotal++;
-          }
+      for(nx=1; nx<=NX; nx++) for(ny=1; ny<=NY; ny++) {
+	nmag += spin[nx][ny];
+	ntotal++;
       }
     }
-    double m_avg = (double)nmag / (double)ntotal;
-    double n_spins = (double)(NX*NY);
-    double e_avg = e_total/(double)nsweep;
-    double e_per_spin = e_avg/n_spins;
-    double e2_avg = e2_total/(double)nsweep;
-    double c = (e2_avg - e_avg * e_avg)/(n_spins*T*T);
-      
-    fprintf(output, "%lf %lf %lf %lf\n", T, m_avg, e_per_spin, c);
+    fprintf(output, "%lf %lf\n", T, (double)nmag/ntotal);
     if (VisualDisplay) DisplayLattice(T);
   }
 
